@@ -4,6 +4,7 @@ const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const flash = require("connect-flash");
+const MongoStore = require("connect-mongo");
 const session = require("express-session");
 const passport = require("passport");
 require("dotenv").config();
@@ -30,7 +31,7 @@ app.use(
     secret: process.env.secret,
     resave: false,
     saveUninitialized: false,
-    // store: MongoStore.create({ mongoUrl: process.env.MONGO_DB_URL }),
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_DB_URL }),
   })
 );
 app.use(passport.initialize());
