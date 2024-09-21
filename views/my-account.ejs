@@ -1,0 +1,94 @@
+<% layout("/layouts/afterboiler.ejs") %>
+
+    <body>
+        <div class="bg-primary mob-bg d-none"></div>
+        <main class="animate__animated animate__fadeIn">
+            <div class="d-none mob-block position-relative text-center text-white my-4">
+                <h2>My Account</h2>
+            </div>
+            <div class="grids mt-2">
+                <div class="account widItem pt-5 mob-pt-1 pb-5 px-5 mob-px-3 z-3 card-custom">
+                    <div class="mb-5 mob-mb-3 d-flex mob-flex-col align-items-center gap-3">
+                        <img src="https://dummyimage.com/150x150/00519d/ffffff.jpg"
+                            class="img-fluid rounded-pill user-img">
+                        <div class="user-con">
+                            <h3 class="m-0">
+                                <%= user.name %>
+                            </h3>
+                            <h5 class="fw-light">
+                                @<%= user.username %>
+                            </h5>
+                        </div>
+                    </div>
+                    <form method="POST" action="/my-account?_method=PATCH" class="d-flex flex-column gap-3 mb-3">
+                        <div class="input-group flex-nowrap">
+                            <span class="input-group-text"><i class="ri-user-3-line"></i></span>
+                            <input type="text" class="form-control" name="name" value="<%=user.name %>"
+                                aria-label="name" />
+                        </div>
+                        <div class="input-group flex-nowrap">
+                            <span class="input-group-text"><i class="ri-id-card-line"></i></span>
+                            <input type="text" class="form-control" name="username" value="<%=user.username %>"
+                                aria-label="Username" />
+                        </div>
+                        <div class="input-group flex-nowrap">
+                            <span class="input-group-text"><i class="ri-mail-line"></i></span>
+                            <input type="email" class="form-control" name="email" value="<%=user.email %>"
+                                aria-label="email" />
+                        </div>
+                        <div class="input-group flex-nowrap">
+                            <span class="input-group-text"><i class="ri-key-2-line"></i></span>
+                            <input type="password" id="password" name="password" class="form-control"
+                                aria-label="password" placeholder="Change Password" />
+                            <span class="input-group-text toggle-password">
+                                <i id="toggleIcon" class="ri-eye-off-line"></i>
+                            </span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary fw-semibold mt-2"> Update Details</button>
+                    </form>
+
+                    <a href="/logout" class="text-danger fw-semibold d-block text-center">Logout</a>
+
+                    <div class="text-center">
+                        <% if (success_msg) { %>
+                            <p style="color: green">
+                                <%= success_msg %>
+                            </p>
+                            <% } %>
+                                <% if (error_msg) { %>
+                                    <p style="color: red">
+                                        <%= error_msg %>
+                                    </p>
+                                    <% } %>
+                                        <% if (error) { %>
+                                            <p style="color: red">
+                                                <%= error %>
+                                            </p>
+                                            <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+
+
+        <script>
+            document
+                .querySelector(".toggle-password")
+                .addEventListener("click", function () {
+                    const passwordInput = document.getElementById("password");
+                    const toggleIcon = document.getElementById("toggleIcon");
+
+                    if (passwordInput.type === "password") {
+                        passwordInput.type = "text";
+                        toggleIcon.classList.remove("ri-eye-off-line");
+                        toggleIcon.classList.add("ri-eye-line");
+                    } else {
+                        passwordInput.type = "password";
+                        toggleIcon.classList.remove("ri-eye-line");
+                        toggleIcon.classList.add("ri-eye-off-line");
+                    }
+                });
+        </script>
+    </body>

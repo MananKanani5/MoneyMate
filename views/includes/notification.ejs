@@ -1,0 +1,38 @@
+<div id="flash-messages">
+    <% if (success_msg) { %>
+        <p id="success" style="color: green">
+            <%= success_msg %>
+        </p>
+        <% } %>
+            <% if (error_msg) { %>
+                <p id="err" style="color: red">
+                    <%= error_msg %>
+                </p>
+                <% } %>
+                    <% if (error) { %>
+                        <p id="genErr" style="color: red">
+                            <%= error %>
+                        </p>
+                        <% } %>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const flashMessages = document.getElementById('flash-messages');
+        const successMsg = document.getElementById('success');
+        const errorMsg = document.getElementById('err');
+        const generalError = document.getElementById('genErr');
+
+        if (successMsg) {
+            toastr.success(successMsg);
+        }
+
+        if (errorMsg) {
+            toastr.error(errorMsg);
+        }
+
+        if (generalError) {
+            toastr.error(generalError);
+        }
+    });
+</script>

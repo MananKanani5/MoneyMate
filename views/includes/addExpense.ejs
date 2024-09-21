@@ -1,0 +1,73 @@
+<div>
+    <button class="position-fixed add-exp" data-bs-toggle="modal" data-bs-target="#exampleModal"><i
+            class="ri-add-large-fill "></i>
+    </button>
+</div>
+<div class="modal animate__animated animate__fadeInUp animate__faster" id="exampleModal" data-bs-backdrop="static"
+    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen-lg-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/expenses" method="POST">
+
+                    <div class="input-group flex-nowrap mb-2">
+                        <span class="input-group-text"><i class="ri-time-line"></i></span>
+                        <input type="time" name="time" id="time" placeholder="Enter Time" class="form-control"
+                            aria-label="time" required>
+                    </div>
+
+                    <div class="input-group flex-nowrap mb-2">
+                        <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
+                        <input type="date" name="date" id="date" placeholder="Enter Date" class="form-control"
+                            aria-label="date" value="today" required>
+                    </div>
+
+                    <div class="input-group flex-nowrap mb-2">
+                        <span class="input-group-text"><i class="ri-money-rupee-circle-line"></i></span>
+                        <input type="number" name="amount" id="amount" placeholder="Enter amount" class="form-control"
+                            min="1" max="200" aria-label="amount" required>
+                    </div>
+
+                    <div class="input-group flex-nowrap mb-2">
+                        <span class="input-group-text"><i class="ri-question-line"></i></span>
+                        <select name="category" id="category"
+                            class="form-control custom-select rounded-1 position-relative" aria-label="category"
+                            required>
+                            <option value="" disabled selected>Select category</option>
+                            <option value="Food">Food</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Personal">Personal</option>
+                            <option value="MISC">Misc</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group flex-nowrap mb-2">
+                        <span class="input-group-text"><i class="ri-sticky-note-line"></i></span>
+                        <textarea name="note" id="note" class="form-control" placeholder="Add a Note"
+                            aria-label="note"></textarea>
+                    </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Add Expense</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const formattedToday = `${year}-${month}-${day}`;
+    document.getElementById('date').setAttribute('max', formattedToday);
+    const startOfYear = `${year}-01-01`;
+    document.getElementById('date').setAttribute('min', startOfYear);
+</script>
