@@ -1,36 +1,31 @@
-<div>
-    <button class="position-fixed add-exp" data-bs-toggle="modal" data-bs-target="#addModel">
-        <i class="ri-add-large-fill"></i>
-    </button>
-</div>
-<div class="modal animate__animated animate__fadeInUp animate__faster" id="addModel" data-bs-backdrop="static"
-    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal animate__animated animate__fadeInUp animate__faster" id="editModel" data-bs-backdrop="static"
+    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel1" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen-lg-down">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addModelLabel">Add Expense</h5>
+                <h5 class="modal-title" id="editModelLabel">Edit Expense</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="expenseForm" action="/expenses" method="POST">
+                <form id="formEdit" method="POST">
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text"><i class="ri-time-line"></i></span>
-                        <input type="time" name="time" id="timeAdd" placeholder="Enter Time" class="form-control"
+                        <input type="time" name="time" id="timeEdit" placeholder="Enter Time" class="form-control"
                             aria-label="time" required>
                     </div>
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text"><i class="ri-calendar-2-line"></i></span>
-                        <input type="date" name="date" id="dateAdd" placeholder="Enter Date" class="form-control"
+                        <input type="date" name="date" id="dateEdit" placeholder="Enter Date" class="form-control"
                             aria-label="date" required>
                     </div>
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text"><i class="ri-money-rupee-circle-line"></i></span>
-                        <input type="number" name="amount" id="amountAdd" placeholder="Enter amount"
+                        <input type="number" name="amount" id="amountEdit" placeholder="Enter amount"
                             class="form-control" min="1" max="200" aria-label="amount" required>
                     </div>
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text"><i class="ri-question-line"></i></span>
-                        <select name="category" id="categoryAdd"
+                        <select name="category" id="categoryEdit"
                             class="form-control custom-select rounded-1 position-relative" aria-label="category"
                             required>
                             <option value="" disabled selected>Select category</option>
@@ -43,37 +38,41 @@
                     </div>
                     <div class="input-group flex-nowrap mb-2">
                         <span class="input-group-text"><i class="ri-sticky-note-line"></i></span>
-                        <textarea name="note" id="noteAdd" class="form-control" placeholder="Add a Note"
+                        <textarea name="note" id="noteEdit" class="form-control" placeholder="Add a Note"
                             aria-label="note"></textarea>
                     </div>
             </div>
             <div class="modal-footer">
-                <button type="submit" id="submitBtn" class="btn btn-primary">Add Expense</button>
+                <button type="submit" id="editSubmitBtn" class="btn btn-primary">Update Expense</button>
                 </form>
+                <form id="deleteForm" method="POST"><button type="submit" class="btn btn-danger">Delete
+                        Expense</button></form>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    document.getElementById('expenseForm').addEventListener('submit', function (event) {
-        const submitBtn = document.getElementById('submitBtn');
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Adding...";
+<script>
+    document.getElementById('formEdit').addEventListener('submit', function (event) {
+        const editSubmitBtn = document.getElementById('editSubmitBtn');
+
+        editSubmitBtn.disabled = true;
+        editSubmitBtn.textContent = "Updating...";
     });
 
-    const setDateAttributes = (dateInputId) => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const formattedToday = `${year}-${month}-${day}`;
-        document.getElementById(dateInputId).setAttribute('max', formattedToday);
-        document.getElementById(dateInputId).setAttribute('min', `${year}-01-01`);
-    };
+    document.getElementById('editModel').addEventListener('shown.bs.modal', function () {
+        setDateAttributes('dateEdit');
 
-    document.getElementById('addModel').addEventListener('shown.bs.modal', function () {
-        setDateAttributes('dateAdd');
+        const categoryEdit = document.querySelector('#categoryEdit');
+        const amountEdit = document.querySelector('#amountEdit');
+        const noteEdit = document.querySelector('#noteEdit');
+
+        const item = this.currentItem;
+        if (item) {
+            categoryEdit.value = item.category;
+            amountEdit.value = item.amount;
+            noteEdit.value = item.note;
+        }
     });
 </script>

@@ -70,10 +70,20 @@ const getExpensesByCategory = async (userId) => {
 };
 
 const getWeeklyExpenses = async (userId) => {
-  const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(endOfWeek.getDate() + 6);
+  const today = new Date();
+  const currentDay = today.getDay();
+
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(
+    today.getDate() - (currentDay === 0 ? 6 : currentDay - 1)
+  );
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(today);
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  // console.log("Start of Week:", startOfWeek.toDateString());
+  // console.log("End of Week:", endOfWeek.toDateString());
 
   const weeklyData = await Expense.aggregate([
     {
@@ -81,19 +91,13 @@ const getWeeklyExpenses = async (userId) => {
         user: userId,
         datetime: {
           $gte: startOfWeek,
-          $lt: new Date(
-            endOfWeek.getFullYear(),
-            endOfWeek.getMonth(),
-            endOfWeek.getDate() + 1
-          ),
+          $lte: endOfWeek,
         },
       },
     },
     {
       $group: {
-        _id: {
-          $dayOfWeek: "$datetime",
-        },
+        _id: { $dayOfWeek: "$datetime" },
         totalAmount: { $sum: "$amount" },
       },
     },
@@ -102,9 +106,13 @@ const getWeeklyExpenses = async (userId) => {
     },
   ]);
 
-  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
   const formattedData = dayLabels.map((day, index) => {
-    const expenseData = weeklyData.find((item) => item._id === index + 1);
+    const expenseData = weeklyData.find(
+      (item) => item._id === (index + 2) % 7 || (index === 6 && item._id === 1)
+    );
+
     return {
       _id: day,
       totalAmount: expenseData ? expenseData.totalAmount : 0,

@@ -1,72 +1,89 @@
 <% layout("/layouts/afterboiler.ejs") %>
 
-    <body>
-        <div class="bg-primary mob-bg d-none"></div>
+    <%- include('./includes/editExpense.ejs') %>
 
-        <main class="animate__animated animate__fadeIn">
-            <div class="d-none mob-block position-relative text-center text-white my-4">
-                <h2>Spendings</h2>
-            </div>
-            <div class="grids mt-2">
-                <div
-                    class="spending widItem pt-2 mob-pt-1 pb-2 px-4 mob-mt-4 mob-px-3 z-3 card position-sticky sticky-element">
-                    <div class="d-flex justify-content-between">
-                        <form action="">
-                            <input class="form-control" name="startDate" type="date">
-                        </form>
-                        <div class="d-flex gap-4">
-                            <a href="#" class="spend-icon"><i class="ri-download-2-line"></i></a>
-                            <a href="#" class="spend-icon"><i class="ri-equalizer-line"></i></a>
+        <body>
+            <div class="bg-primary mob-bg d-none"></div>
+
+            <main class="animate__animated animate__fadeIn">
+                <div class="d-none mob-block position-relative text-center text-white my-4">
+                    <h2>Spendings</h2>
+                </div>
+                <div class="grids mt-2">
+                    <div
+                        class="spending widItem pt-2 mob-pt-1 pb-2 px-4 mob-mt-4 mob-px-3 z-3 card position-sticky sticky-element">
+                        <div class="d-flex justify-content-between">
+                            <form action="">
+
+                            </form>
+                            <div class="d-flex gap-4">
+                                <a href="#" class="spend-icon"><i class="ri-download-2-line"></i></a>
+                                <a href="#" class="spend-icon"><i class="ri-equalizer-line"></i></a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="card p-4 spending widItem">
+                    <div class="card p-4 spending widItem">
 
-                    <% if(expenses.length> 0) { %>
-                        <% expenses.forEach(element=> { %>
-                            <a href="#" class="spending-item mb-2 d-flex justify-content-between">
-                                <div class="d-flex align-items-center w-100">
-                                    <img src="/assets/categories/<%= element.category %>.jpg" class="rounded-2"
-                                        alt="Food" loading="lazy" />
-                                    <div class="flex-grow-1 d-flex justify-content-between">
-                                        <div class="spending-details ms-2 ">
-                                            <h6 class="m-0">
-                                                <%= element.category %>
-                                            </h6>
-                                            <p class="spending-date">
-                                                <%= element.datetime %>
+                        <% if(expenses.length> 0) { %>
+                            <% expenses.forEach(element=> { %>
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#editModel"
+                                    data-category="<%= element.category %>" data-amount="<%= element.amount %>"
+                                    data-note="<%= element.note %>" data-id="<%= element._id %>"
+                                    class="spending-item mb-2 d-flex justify-content-between">
+                                    <div class="d-flex align-items-center w-100">
+                                        <img src="/assets/categories/<%= element.category %>.jpg" class="rounded-2"
+                                            alt="Food" loading="lazy" />
+                                        <div class="flex-grow-1 d-flex justify-content-between">
+                                            <div class="spending-details ms-2 ">
+                                                <h6 class="m-0">
+                                                    <%= element.category %>
+                                                </h6>
+                                                <p class="spending-date">
+                                                    <%= element.datetime %>
+                                                </p>
+                                            </div>
+                                            <p class="fw-medium">
+                                                <%=formatCurrency(element.amount) %>
                                             </p>
                                         </div>
-                                        <p class="fw-medium">
-                                            <%=formatCurrency(element.amount) %>
-                                        </p>
                                     </div>
-                                </div>
-                            </a>
-                            <% }); } else { %>
-                                <p>There are no recent Expenses.</p>
-                                <% } %>
+                                </a>
+                                <% }); } else { %>
+                                    <p>There are no recent Expenses.</p>
+                                    <% } %>
 
+                    </div>
                 </div>
+            </main>
 
+            <script>
+                const stickyElement = document.querySelector(' .sticky-element'); const
+                    stickyOffset = stickyElement.offsetTop; function checkSticky() {
+                        if (window.scrollY > stickyOffset) {
+                            stickyElement.classList.add('sticky-active');
+                        } else {
+                            stickyElement.classList.remove('sticky-active');
+                        }
+                    }
 
-            </div>
-        </main>
+                window.addEventListener('scroll', checkSticky);
+                checkSticky();
 
-        <script>
-            const stickyElement = document.querySelector('.sticky-element');
-            const stickyOffset = stickyElement.offsetTop;
+                document.querySelectorAll('.spending-item').forEach(item => {
+                    item.addEventListener('click', function () {
+                        const category = this.getAttribute('data-category');
+                        const amount = this.getAttribute('data-amount');
+                        const note = this.getAttribute('data-note');
+                        const id = this.getAttribute('data-id');
 
-            function checkSticky() {
-                if (window.scrollY > stickyOffset) {
-                    stickyElement.classList.add('sticky-active');
-                } else {
-                    stickyElement.classList.remove('sticky-active');
-                }
-            }
+                        document.querySelector('#categoryEdit').value = category;
+                        document.querySelector('#amountEdit').value = amount;
+                        document.querySelector('#noteEdit').value = note;
+                        document.querySelector('#formEdit').action = `/expenses/${id}?_method=PATCH`;
+                        document.querySelector('#deleteForm').action = `/expenses/${id}?_method=DELETE`;
 
-            window.addEventListener('scroll', checkSticky);
-            checkSticky();
-        </script>
-    </body>
+                    });
+                });
+            </script>
+        </body>

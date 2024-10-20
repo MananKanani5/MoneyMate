@@ -1,10 +1,20 @@
 //Pie Chart
+const categoryColorMap = {
+  Food: "#1f4e79",
+  Transport: "#3a6ea5",
+  Entertainment: "#5f9ea0",
+  Personal: "#84ade3",
+  Misc: "#bebebe",
+};
 const expensesByCategoryData = document
   .getElementById("pieChart")
   .getAttribute("data-expenses-by-category");
 const expensesByCategory = JSON.parse(expensesByCategoryData);
 const labels1 = expensesByCategory.map((item) => item._id);
 const dataValues1 = expensesByCategory.map((item) => item.totalAmount);
+const colorValue1 = expensesByCategory.map(
+  (item) => categoryColorMap[item._id] || "#d3d3d3"
+);
 const ctx = document.getElementById("myPieChart").getContext("2d");
 const myPieChart = new Chart(ctx, {
   type: "pie",
@@ -14,13 +24,7 @@ const myPieChart = new Chart(ctx, {
       {
         label: "Spent",
         data: dataValues1,
-        backgroundColor: [
-          "#16325B",
-          "#FFDC7F",
-          "#227B94",
-          "#FFDC41",
-          "#78B7D0",
-        ],
+        backgroundColor: colorValue1,
         borderWidth: 1,
       },
     ],

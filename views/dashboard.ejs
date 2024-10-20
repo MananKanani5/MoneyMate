@@ -1,88 +1,114 @@
 <% layout("/layouts/afterboiler.ejs") %>
+  <%- include('./includes/editExpense.ejs') %>
 
-  <body>
-    <div class="bg-primary mob-bg d-none">
-    </div>
-    <main class=" main-content mb-4 animate__animated animate__fadeIn">
-      <a href="/dashboard" class="logo d-none mob-block position-relative mb-4 mt-3 text-center "><img
-          src="/assets/logo.svg" class="img-fluid w-50" /></a>
 
-      <h4 class="fw-bold mt-2 mb-4 hide-mob hide-mob">Hello, <span>
-          <%= user.name %>
-        </span></h4>
+    <body>
+      <div class="bg-primary mob-bg d-none">
+      </div>
+      <main class=" main-content mb-4 animate__animated animate__fadeIn">
+        <a href="/dashboard" class="logo d-none mob-block position-relative mb-4 mt-3 text-center "><img
+            src="/assets/logo.svg" class="img-fluid w-50" /></a>
 
-      <div class="grids">
-        <!-- money -->
-        <div class="card p-4 d-flex flex-row justify-content-between money widItem">
-          <div class="left">
-            <h2 class="fw-bold text-primary">
-              <%= formatCurrency(totalSpentAmount) %>
-            </h2>
-            <h6>Spent</h6>
+        <h4 class="fw-bold mt-2 mb-4 hide-mob hide-mob">Hello, <span>
+            <%= user.name %>
+          </span></h4>
+
+        <div class="grids">
+          <!-- money -->
+          <div class="card p-4 d-flex flex-row justify-content-between money widItem">
+            <div class="left">
+              <h2 class="fw-bold text-primary">
+                <%= formatCurrency(totalSpentAmount) %>
+              </h2>
+              <h6>Spent</h6>
+            </div>
+
+            <div class="right">
+              <h2 class="fw-bold text-primary text-end">₹6,000</h2>
+              <h6 class="text-end">Budget</h6>
+            </div>
           </div>
 
-          <div class="right">
-            <h2 class="fw-bold text-primary text-end">₹6,000</h2>
-            <h6 class="text-end">Budget</h6>
+          <!-- piechart -->
+          <div class="card p-4 pie widItem" id="pieChart" data-expenses-by-category='<%= expensesByCategory %>'>
+            <div class="d-flex justify-content-center align-items-center">
+              <% if (JSON.parse(expensesByCategory).length> 0) { %>
+                <canvas id="myPieChart"></canvas>
+                <% } else { %>
+                  <p class="text-center">Add an expense to view the chart</p>
+                  <% } %>
+            </div>
           </div>
-        </div>
-
-        <!-- piechart -->
-        <div class="card p-4 pie widItem" id="pieChart" data-expenses-by-category='<%= expensesByCategory %>'>
-          <div class="d-flex justify-content-center align-items-center">
-            <canvas id="myPieChart"></canvas>
-          </div>
-          <!-- <h5 class="text-center">September</h5> -->
-        </div>
 
 
 
-        <!-- spend -->
-        <div class="card p-4 spend widItem">
-          <h5 class="mb-4 fw-bold">Recent Expenses</h5>
-          <% if(lastThreeTransactions.length> 0) { %>
-            <% lastThreeTransactions.forEach(element=> { %>
-              <a href="#" class="spending-item mb-2 d-flex justify-content-between">
-                <div class="d-flex align-items-center w-100">
-                  <img src="/assets/categories/<%= element.category %>.jpg" class="rounded-2" alt="Food"
-                    loading="lazy" />
-                  <div class="flex-grow-1 d-flex justify-content-between">
-                    <div class="spending-details ms-2 ">
-                      <h6 class="m-0">
-                        <%= element.category %>
-                      </h6>
-                      <p class="spending-date">
-                        <%= element.datetime %>
+          <!-- spend -->
+          <div class="card p-4 spend widItem">
+            <h5 class="mb-4 fw-bold">Recent Expenses</h5>
+            <% if(lastThreeTransactions.length> 0) { %>
+              <% lastThreeTransactions.forEach(element=> { %>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#editModel" data-category="<%= element.category %>"
+                  data-amount="<%= element.amount %>" data-note="<%= element.note %>" data-id="<%= element._id %>"
+                  class="spending-item mb-2 d-flex justify-content-between">
+                  <div class="d-flex align-items-center w-100">
+                    <img src="/assets/categories/<%= element.category %>.jpg" class="rounded-2" alt="Food"
+                      loading="lazy" />
+                    <div class="flex-grow-1 d-flex justify-content-between">
+                      <div class="spending-details ms-2 ">
+                        <h6 class="m-0">
+                          <%= element.category %>
+                        </h6>
+                        <p class="spending-date">
+                          <%= element.datetime %>
+                        </p>
+                      </div>
+                      <p class="fw-medium">
+                        <%=formatCurrency(element.amount) %>
                       </p>
                     </div>
-                    <p class="fw-medium">
-                      <%=formatCurrency(element.amount) %>
-                    </p>
                   </div>
-                </div>
-              </a>
-              <% }); %>
-                <!-- See More Link -->
-                <div class="text-end">
-                  <a href="/expenses" class="text-primary fw-medium">See More</a>
-                </div>
+                </a>
+                <% }); %>
+                  <div class="text-end">
+                    <a href="/expenses" class="text-primary fw-medium">See More</a>
+                  </div>
+                  <% } else { %>
+                    <p>There are no recent Expenses.</p>
+                    <% } %>
+          </div>
+
+          <!-- Weekly Expenses Section -->
+          <div class="card p-4 chart widItem" id="weeklyExpenses"
+            data-expenses-by-week='<%= JSON.stringify(weeklyExpenses) %>'>
+            <div class="d-flex justify-content-center align-items-center">
+              <% if (weeklyExpenses && weeklyExpenses.length> 0) { %>
+                <canvas id="myBarChart"></canvas>
                 <% } else { %>
-                  <p>There are no recent Expenses.</p>
+                  <p class="text-center">Add an expense to view the weekly expenses chart</p>
                   <% } %>
+            </div>
+          </div>
 
 
         </div>
+      </main>
 
-        <!-- chart -->
-        <div class="card p-4 chart widItem" id="weeklyExpenses"
-          data-expenses-by-week='<%= JSON.stringify(weeklyExpenses) %>'>
-          <div class="d-flex justify-content-center align-items-center"></div>
-          <canvas id="myBarChart"></canvas>
-        </div>
+      <script src="/chart.js"></script>
+      <script>
+        document.querySelectorAll('.spending-item').forEach(item => {
+          item.addEventListener('click', function () {
+            const category = this.getAttribute('data-category');
+            const amount = this.getAttribute('data-amount');
+            const note = this.getAttribute('data-note');
+            const id = this.getAttribute('data-id');
 
+            document.querySelector('#categoryEdit').value = category;
+            document.querySelector('#amountEdit').value = amount;
+            document.querySelector('#noteEdit').value = note;
+            document.querySelector('#formEdit').action = `/expenses/${id}?_method=PATCH`;
+            document.querySelector('#deleteForm').action = `/expenses/${id}?_method=DELETE`;
 
-      </div>
-    </main>
-
-    <script src="/chart.js"></script>
-  </body>
+          });
+        });
+      </script>
+    </body>

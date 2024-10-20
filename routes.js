@@ -58,7 +58,6 @@ router.get("/dashboard", async (req, res) => {
     const weeklyExpenses = await dashboardService.getWeeklyExpenses(
       req.user._id
     );
-
     res.render("dashboard", {
       title: "Dashboard | MoneyMate",
       user: req.user,
@@ -108,7 +107,7 @@ router.get("/expenses", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
   const { startDate, endDate, sortOrder, page } = req.query;
-  const limit = 20; // Number of items per page
+  const limit = 20;
   let expenses;
   let totalSpent;
 
@@ -149,6 +148,39 @@ router.get("/expenses", async (req, res) => {
   });
 });
 
+router.patch("/expenses/:id", async (req, res) => {
+  const { id } = req.params;
+  const { time, date, amount, category, note } = req.body;
+  const datetime = new Date(`${date}T${time}`);
+  const expenseData = {
+    datetime,
+    amount,
+    category,
+    note,
+    user: req.user.id,
+  };
+  try {
+    await Expense.findByIdAndUpdate(id, expenseData, { new: true });
+    req.flash("success_msg", "Expense Updated Successfully");
+    res.redirect("/dashboard");
+  } catch (err) {
+    req.flash("error_msg", "Error updating the expense.");
+    res.status(500).redirect("/dashboard");
+  }
+});
+
+router.delete("/expenses/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await Expense.findByIdAndDelete(id);
+    req.flash("success_msg", "Expense Deleted Successfully");
+    res.redirect("/dashboard");
+  } catch (error) {
+    req.flash("error_msg", "Error Deleting the expense.");
+    res.status(500).redirect("/dashboard");
+  }
+});
+
 router.post("/expenses", async (req, res) => {
   const { time, date, amount, category, note } = req.body;
   const datetime = new Date(`${date}T${time}`);
@@ -166,8 +198,6 @@ router.post("/expenses", async (req, res) => {
     req.flash("success_msg", "New Expense Added Successfully");
     res.redirect("/dashboard");
   } catch (err) {
-    console.log(err);
-
     req.flash("error_msg", "Error Adding new expense.");
     res.status(500).redirect("/dashboard");
   }
