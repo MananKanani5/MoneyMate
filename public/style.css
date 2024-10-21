@@ -38,6 +38,10 @@
     .card-custom:hover{
         box-shadow: 0 10px 20px 0 #00000010;
     }
+    .modal-footer{
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
 }
 
 *{
@@ -265,7 +269,7 @@ button:hover{
     position: fixed; 
     top: 60px;
     right: 60px;
-    z-index: 1000; /* Ensure it appears on top */
+    z-index: 1000;
 }
 
 .alert {
@@ -274,6 +278,12 @@ button:hover{
 
 .hide-pc{
     display: none !important;
+}
+
+@media (min-width: 769px) and (max-width: 1440px) {
+    #myPieChart{
+        height: auto !important;
+    }
 }
 
 @media(max-width:768px){

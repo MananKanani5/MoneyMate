@@ -1,5 +1,4 @@
 <% layout("/layouts/afterboiler.ejs") %>
-
     <%- include('./includes/editExpense.ejs') %>
 
         <body>
@@ -13,18 +12,36 @@
                     <div
                         class="spending widItem pt-2 mob-pt-1 pb-2 px-4 mob-mt-4 mob-px-3 z-3 card position-sticky sticky-element">
                         <div class="d-flex justify-content-between">
-                            <form action="">
+                            <form action="" class="d-flex gap-2">
+                                <div class="input-group flex-nowrap">
+                                    <span class="input-group-text">
+                                        <p>Start Date</p>
+                                    </span>
+                                    <input type="date" name="startDate" id="startDate" placeholder="Enter Start Date"
+                                        class="form-control" aria-label="startDate" required>
+                                </div>
+                                <div class="input-group flex-nowrap">
+                                    <span class="input-group-text">
+                                        <p>End Date</p>
+                                    </span>
+                                    <input type="date" name="endDate" id="endDate" placeholder="Enter End Date"
+                                        class="form-control" aria-label="endDate" required>
+                                </div>
+                                <div class="input-group flex-nowrap">
 
+                                    <button type="submit" id="submitBtn" class="btn btn-primary">Filter</button>
+                                </div>
                             </form>
                             <div class="d-flex gap-4">
                                 <a href="#" class="spend-icon"><i class="ri-download-2-line"></i></a>
-                                <a href="#" class="spend-icon"><i class="ri-equalizer-line"></i></a>
                             </div>
                         </div>
                     </div>
+                    <div class="card p-4 spending widItem">
+                        <%= totalSpent %>
+                    </div>
 
                     <div class="card p-4 spending widItem">
-
                         <% if(expenses.length> 0) { %>
                             <% expenses.forEach(element=> { %>
                                 <a href="#" data-bs-toggle="modal" data-bs-target="#editModel"
@@ -41,6 +58,9 @@
                                                 </h6>
                                                 <p class="spending-date">
                                                     <%= element.datetime %>
+                                                </p>
+                                                <p class="spending-date">
+                                                    <%= element.note %>
                                                 </p>
                                             </div>
                                             <p class="fw-medium">
@@ -69,6 +89,7 @@
 
                 window.addEventListener('scroll', checkSticky);
                 checkSticky();
+
 
                 document.querySelectorAll('.spending-item').forEach(item => {
                     item.addEventListener('click', function () {
