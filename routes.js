@@ -45,7 +45,7 @@ router.post("/register", async (req, res) => {
 
 router.get("/dashboard", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
-  const currentMonth = new Date().getMonth();
+  // const currentMonth = new Date().getMonth();
   try {
     const totalSpentAmount = await dashboardService.getTotalSpentInCurrentMonth(
       req.user._id
@@ -106,46 +106,43 @@ router.patch("/my-account", async (req, res) => {
 router.get("/expenses", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
-  const { startDate, endDate, sortOrder, page } = req.query;
-  const limit = 20;
-  let expenses;
-  let totalSpent;
+  const { month } = req.query; // month is in 'YYYY-MM' format
+  const currentDate = new Date();
 
-  if (startDate && endDate) {
-    expenses = await expensesService.getExpensesByDateRange(
-      req.user._id,
-      startDate,
-      endDate,
-      sortOrder,
-      page || 1,
-      limit
-    );
-    totalSpent = await expensesService.calculateTotalSpent(
-      req.user._id,
-      startDate,
-      endDate
-    );
+  let selectedYear, selectedMonth;
+
+  if (month) {
+    // Split the month query to get year and month
+    [selectedYear, selectedMonth] = month.split("-").map(Number);
   } else {
-    expenses = await expensesService.getMonthlyExpenses(
-      req.user._id,
-      page || 1,
-      limit
-    );
-    totalSpent = await expensesService.calculateTotalSpent(
-      req.user._id,
-      new Date().toISOString().slice(0, 10),
-      new Date().toISOString().slice(0, 10)
-    );
+    // Default to current month and year
+    selectedYear = currentDate.getFullYear();
+    selectedMonth = currentDate.getMonth() + 1; // getMonth() returns 0-indexed month
   }
 
-  res.render("expenses", {
-    title: "Expenses | MoneyMate",
-    user: req.user,
-    expenses,
-    totalSpent,
-    currentPage: page || 1,
-    hasMore: expenses.length === limit,
-  });
+  try {
+    const expenses = await expensesService.getMonthlyExpenses(
+      req.user._id,
+      selectedMonth, // Pass the selected month
+      selectedYear // Pass the selected year
+    );
+    const totalSpent = await expensesService.calculateTotalSpent(
+      req.user._id,
+      selectedMonth,
+      selectedYear
+    );
+
+    res.render("expenses", {
+      title: "Expenses | MoneyMate",
+      user: req.user,
+      expenses,
+      totalSpent,
+      selectedMonth, // Pass selected month and year to the view
+      selectedYear,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 router.patch("/expenses/:id", async (req, res) => {

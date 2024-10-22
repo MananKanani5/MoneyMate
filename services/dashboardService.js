@@ -71,6 +71,7 @@ const getExpensesByCategory = async (userId) => {
 
 const getWeeklyExpenses = async (userId) => {
   const today = new Date();
+
   const currentDay = today.getDay();
 
   const startOfWeek = new Date(today);
@@ -81,9 +82,6 @@ const getWeeklyExpenses = async (userId) => {
 
   const endOfWeek = new Date(today);
   endOfWeek.setHours(23, 59, 59, 999);
-
-  // console.log("Start of Week:", startOfWeek.toDateString());
-  // console.log("End of Week:", endOfWeek.toDateString());
 
   const weeklyData = await Expense.aggregate([
     {
@@ -118,6 +116,7 @@ const getWeeklyExpenses = async (userId) => {
       totalAmount: expenseData ? expenseData.totalAmount : 0,
     };
   });
+  console.log(formattedData);
 
   return formattedData;
 };

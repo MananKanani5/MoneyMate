@@ -10,11 +10,15 @@ const formatDate = (date) => {
   return `${time} ${day}/${month}/${year}`;
 };
 
-const getMonthlyExpenses = async (userId, page = 1, limit = 20) => {
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  const endOfMonth = new Date(startOfMonth);
-  endOfMonth.setMonth(startOfMonth.getMonth() + 1);
+const getMonthlyExpenses = async (
+  userId,
+  month,
+  year,
+  page = 1,
+  limit = 20
+) => {
+  const startOfMonth = new Date(year, month - 1, 1); // month is 0-indexed
+  const endOfMonth = new Date(year, month, 1); // Next month start
 
   const expenses = await Expense.find({
     user: userId,
@@ -33,36 +37,17 @@ const getMonthlyExpenses = async (userId, page = 1, limit = 20) => {
   }));
 };
 
-const getExpensesByDateRange = async (
-  userId,
-  startDate,
-  endDate,
-  sortOrder = "desc",
-  page = 1,
-  limit = 20
-) => {
-  const query = {
-    user: userId,
-    datetime: {
-      $gte: new Date(startDate),
-      $lt: new Date(endDate),
-    },
-  };
+const calculateTotalSpent = async (userId, month, year) => {
+  const startOfMonth = new Date(year, month - 1, 1);
+  const endOfMonth = new Date(year, month, 1); // First day of next month
 
-  return await Expense.find(query)
-    .sort({ datetime: sortOrder === "asc" ? 1 : -1 })
-    .skip((page - 1) * limit)
-    .limit(limit);
-};
-
-const calculateTotalSpent = async (userId, startDate, endDate) => {
   const total = await Expense.aggregate([
     {
       $match: {
         user: userId,
         datetime: {
-          $gte: new Date(startDate),
-          $lt: new Date(endDate),
+          $gte: startOfMonth,
+          $lt: endOfMonth,
         },
       },
     },
@@ -79,6 +64,5 @@ const calculateTotalSpent = async (userId, startDate, endDate) => {
 
 module.exports = {
   getMonthlyExpenses,
-  getExpensesByDateRange,
   calculateTotalSpent,
 };
