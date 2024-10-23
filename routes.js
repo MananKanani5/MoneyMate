@@ -5,6 +5,8 @@ const { User, Expense } = require("./models/users.js");
 const bcrypt = require("bcrypt");
 const dashboardService = require("./services/dashboardService.js");
 const expensesService = require("./services/expenseService");
+const NodeCache = require("node-cache");
+const myCache = new NodeCache({ stdTTL: 600 });
 
 // Route Handlers
 router.get("/", (req, res) => {
@@ -45,7 +47,15 @@ router.post("/register", async (req, res) => {
 
 router.get("/dashboard", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
-  // const currentMonth = new Date().getMonth();
+
+  const cacheKey = `dashboard_${req.user._id}`;
+  let cachedData = myCache.get(cacheKey);
+
+  if (cachedData) {
+    // Return data from cache if available
+    return res.render("dashboard", cachedData);
+  }
+
   try {
     const totalSpentAmount = await dashboardService.getTotalSpentInCurrentMonth(
       req.user._id
@@ -58,14 +68,20 @@ router.get("/dashboard", async (req, res) => {
     const weeklyExpenses = await dashboardService.getWeeklyExpenses(
       req.user._id
     );
-    res.render("dashboard", {
+
+    const dashboardData = {
       title: "Dashboard | MoneyMate",
       user: req.user,
       totalSpentAmount,
       lastThreeTransactions,
       expensesByCategory: JSON.stringify(expensesByCategory),
       weeklyExpenses,
-    });
+    };
+
+    // Cache the dashboard data
+    myCache.set(cacheKey, dashboardData);
+
+    res.render("dashboard", dashboardData);
   } catch (err) {
     console.error(err);
     req.flash("error_msg", "Error fetching dashboard data.");
@@ -120,6 +136,14 @@ router.get("/expenses", async (req, res) => {
     selectedMonth = currentDate.getMonth() + 1; // getMonth() returns 0-indexed month
   }
 
+  const cacheKey = `expenses_${req.user._id}_${selectedYear}_${selectedMonth}`;
+  let cachedData = myCache.get(cacheKey);
+
+  if (cachedData) {
+    // Return data from cache if available
+    return res.render("expenses", cachedData);
+  }
+
   try {
     const expenses = await expensesService.getMonthlyExpenses(
       req.user._id,
@@ -132,16 +156,23 @@ router.get("/expenses", async (req, res) => {
       selectedYear
     );
 
-    res.render("expenses", {
+    const expensesData = {
       title: "Expenses | MoneyMate",
       user: req.user,
       expenses,
       totalSpent,
       selectedMonth, // Pass selected month and year to the view
       selectedYear,
-    });
+    };
+
+    // Cache the expenses data
+    myCache.set(cacheKey, expensesData);
+
+    res.render("expenses", expensesData);
   } catch (err) {
     console.log(err);
+    req.flash("error_msg", "Error fetching expenses data.");
+    res.status(500).redirect("/expenses");
   }
 });
 
@@ -158,6 +189,11 @@ router.patch("/expenses/:id", async (req, res) => {
   };
   try {
     await Expense.findByIdAndUpdate(id, expenseData, { new: true });
+
+    // Invalidate cache after update
+    const cacheKey = `expenses_${req.user._id}`;
+    myCache.del(cacheKey);
+
     req.flash("success_msg", "Expense Updated Successfully");
     res.redirect("/dashboard");
   } catch (err) {
@@ -170,6 +206,11 @@ router.delete("/expenses/:id", async (req, res) => {
   const { id } = req.params;
   try {
     await Expense.findByIdAndDelete(id);
+
+    // Invalidate cache after deletion
+    const cacheKey = `expenses_${req.user._id}`;
+    myCache.del(cacheKey);
+
     req.flash("success_msg", "Expense Deleted Successfully");
     res.redirect("/dashboard");
   } catch (error) {
@@ -192,6 +233,11 @@ router.post("/expenses", async (req, res) => {
   try {
     const newExpense = new Expense(expenseData);
     await newExpense.save();
+
+    // Invalidate cache after new expense
+    const cacheKey = `expenses_${req.user._id}`;
+    myCache.del(cacheKey);
+
     req.flash("success_msg", "New Expense Added Successfully");
     res.redirect("/dashboard");
   } catch (err) {
