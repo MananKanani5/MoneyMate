@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const { User, Expense } = require("./models/users.js");
-const bcrypt = require("bcrypt");
 const dashboardService = require("./services/dashboardService.js");
 const expensesService = require("./services/expenseService");
 const NodeCache = require("node-cache");
@@ -48,11 +47,11 @@ router.post("/register", async (req, res) => {
 router.get("/dashboard", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
+  const forceRefresh = req.query.refresh === "true";
   const cacheKey = `dashboard_${req.user._id}`;
   let cachedData = myCache.get(cacheKey);
 
-  if (cachedData) {
-    // Return data from cache if available
+  if (!forceRefresh && cachedData) {
     return res.render("dashboard", cachedData);
   }
 
@@ -78,9 +77,7 @@ router.get("/dashboard", async (req, res) => {
       weeklyExpenses,
     };
 
-    // Cache the dashboard data
     myCache.set(cacheKey, dashboardData);
-
     res.render("dashboard", dashboardData);
   } catch (err) {
     console.error(err);
@@ -94,61 +91,33 @@ router.get("/my-account", async (req, res) => {
   res.render("my-account", { title: "My Account | MoneyMate", user: req.user });
 });
 
-router.patch("/my-account", async (req, res) => {
-  const { name, username, email, password } = req.body;
-  try {
-    const updateData = {
-      name,
-      username,
-      email,
-    };
-
-    if (password && password.trim() !== "") {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      updateData.password = hashedPassword;
-    }
-    await User.findByIdAndUpdate(req.user.id, { $set: updateData });
-
-    req.flash("success_msg", "Details updated Successfully");
-    res.redirect("/my-account");
-  } catch (err) {
-    console.log(err);
-    req.flash("error_msg", "Error updating Details");
-    res.status(500).redirect("/my-account");
-  }
-});
-
 router.get("/expenses", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
-  const { month } = req.query; // month is in 'YYYY-MM' format
+  const forceRefresh = req.query.refresh === "true";
+  const { month } = req.query;
   const currentDate = new Date();
-
   let selectedYear, selectedMonth;
 
   if (month) {
-    // Split the month query to get year and month
     [selectedYear, selectedMonth] = month.split("-").map(Number);
   } else {
-    // Default to current month and year
     selectedYear = currentDate.getFullYear();
-    selectedMonth = currentDate.getMonth() + 1; // getMonth() returns 0-indexed month
+    selectedMonth = currentDate.getMonth() + 1;
   }
 
   const cacheKey = `expenses_${req.user._id}_${selectedYear}_${selectedMonth}`;
   let cachedData = myCache.get(cacheKey);
 
-  if (cachedData) {
-    // Return data from cache if available
+  if (!forceRefresh && cachedData) {
     return res.render("expenses", cachedData);
   }
 
   try {
     const expenses = await expensesService.getMonthlyExpenses(
       req.user._id,
-      selectedMonth, // Pass the selected month
-      selectedYear // Pass the selected year
+      selectedMonth,
+      selectedYear
     );
     const totalSpent = await expensesService.calculateTotalSpent(
       req.user._id,
@@ -161,13 +130,11 @@ router.get("/expenses", async (req, res) => {
       user: req.user,
       expenses,
       totalSpent,
-      selectedMonth, // Pass selected month and year to the view
+      selectedMonth,
       selectedYear,
     };
 
-    // Cache the expenses data
     myCache.set(cacheKey, expensesData);
-
     res.render("expenses", expensesData);
   } catch (err) {
     console.log(err);
@@ -175,6 +142,16 @@ router.get("/expenses", async (req, res) => {
     res.status(500).redirect("/expenses");
   }
 });
+
+const invalidateCache = (userId) => {
+  const dashboardCacheKey = `dashboard_${userId}`;
+  myCache.del(dashboardCacheKey);
+
+  const expenseKeys = Object.keys(myCache.keys).filter((key) =>
+    key.startsWith(`expenses_${userId}`)
+  );
+  expenseKeys.forEach((key) => myCache.del(key));
+};
 
 router.patch("/expenses/:id", async (req, res) => {
   const { id } = req.params;
@@ -189,16 +166,12 @@ router.patch("/expenses/:id", async (req, res) => {
   };
   try {
     await Expense.findByIdAndUpdate(id, expenseData, { new: true });
-
-    // Invalidate cache after update
-    const cacheKey = `expenses_${req.user._id}`;
-    myCache.del(cacheKey);
-
+    invalidateCache(req.user._id);
     req.flash("success_msg", "Expense Updated Successfully");
-    res.redirect("/dashboard");
+    res.redirect("/expenses?refresh=true");
   } catch (err) {
     req.flash("error_msg", "Error updating the expense.");
-    res.status(500).redirect("/dashboard");
+    res.status(500).redirect("/dashboard?refresh=true");
   }
 });
 
@@ -206,16 +179,12 @@ router.delete("/expenses/:id", async (req, res) => {
   const { id } = req.params;
   try {
     await Expense.findByIdAndDelete(id);
-
-    // Invalidate cache after deletion
-    const cacheKey = `expenses_${req.user._id}`;
-    myCache.del(cacheKey);
-
+    invalidateCache(req.user._id);
     req.flash("success_msg", "Expense Deleted Successfully");
-    res.redirect("/dashboard");
+    res.redirect("/expenses?refresh=true");
   } catch (error) {
     req.flash("error_msg", "Error Deleting the expense.");
-    res.status(500).redirect("/dashboard");
+    res.status(500).redirect("/dashboard?refresh=true");
   }
 });
 
@@ -233,16 +202,12 @@ router.post("/expenses", async (req, res) => {
   try {
     const newExpense = new Expense(expenseData);
     await newExpense.save();
-
-    // Invalidate cache after new expense
-    const cacheKey = `expenses_${req.user._id}`;
-    myCache.del(cacheKey);
-
+    invalidateCache(req.user._id);
     req.flash("success_msg", "New Expense Added Successfully");
-    res.redirect("/dashboard");
+    res.redirect("/expenses?refresh=true");
   } catch (err) {
     req.flash("error_msg", "Error Adding new expense.");
-    res.status(500).redirect("/dashboard");
+    res.status(500).redirect("/dashboard?refresh=true");
   }
 });
 

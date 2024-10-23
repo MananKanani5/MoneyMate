@@ -116,7 +116,7 @@ const getWeeklyExpenses = async (userId) => {
       totalAmount: expenseData ? expenseData.totalAmount : 0,
     };
   });
-  console.log(formattedData);
+  // console.log(formattedData);
 
   return formattedData;
 };
